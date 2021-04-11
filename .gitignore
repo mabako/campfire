@@ -2,3 +2,6 @@
 /.idea
 *.iml
 *.html
+
+/example-vault/.obsidian
+/example-vault/.campfire/my-blog/

@@ -6,6 +6,7 @@ authors = ["Marcus Bauer <marcus@bauer.wf>"]
 edition = "2018"
 repository = "https://github.com/mabako/campfire"
 license = "MIT"
+exclude = ["/example-vault"]
 
 [dependencies]
 chrono = "0.4"
