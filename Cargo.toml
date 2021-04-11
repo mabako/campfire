@@ -1,10 +1,11 @@
 [package]
 name = "campfire"
-version = "0.1.0"
+description = "A tiny static site generator, greatly inspired by Zola."
+version = "0.0.1"
 authors = ["Marcus Bauer <marcus@bauer.wf>"]
 edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+repository = "https://github.com/mabako/campfire"
+license = "MIT"
 
 [dependencies]
 chrono = "0.4"

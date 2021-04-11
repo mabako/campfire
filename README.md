@@ -1,3 +1,3 @@
 # 🏕️ Campfire
 
-A tiny static site generator, built for exactly one site.
+A tiny static site generator, greatly inspired by Zola.

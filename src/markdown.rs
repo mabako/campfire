@@ -6,7 +6,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 lazy_static! {
-    /* Taken from Zola */
+    // https://github.com/getzola/zola/blob/1ef8c85f53b4988fdafc0e6271cce590515d55aa/components/front_matter/src/lib.rs#L17
     static ref YAML_RE: Regex =
         Regex::new(r"^[[:space:]]*---(\r?\n(?s).*?(?-s))---\r?\n?((?s).*(?-s))$").unwrap();
 
