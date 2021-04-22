@@ -1,2 +1,5 @@
 name: my-blog
 require-tag: published
+target-path: ./out
+template-path: ./templates
+base-url: http://localhost

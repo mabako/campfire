@@ -1,3 +1,4 @@
+use crate::config::Config;
 use chrono::{Date, Utc};
 use pulldown_cmark::{html, Event, Options, Parser, Tag};
 use regex::Regex;
@@ -31,7 +32,7 @@ pub fn read_markdown_file(path: PathBuf) -> Option<MarkdownFile> {
 pub struct Frontmatter {
     pub title: Option<String>,
 
-    #[serde(with = "utc_date")]
+    #[serde(with = "utc_date", default)]
     pub date: Option<Date<Utc>>,
     pub tags: Vec<String>,
 }
@@ -41,6 +42,11 @@ pub struct MarkdownFile {
     pub path: PathBuf,
     pub frontmatter: Frontmatter,
     markdown: String,
+}
+
+pub struct Asset {
+    pub source: PathBuf,
+    pub target: PathBuf,
 }
 
 impl MarkdownFile {
@@ -71,13 +77,14 @@ impl MarkdownFile {
             .replace(" ", "-")
     }
 
-    pub fn render_to_html(&self) -> String {
+    pub fn render_to_html(&self, config: &Config) -> (String, Vec<Asset>) {
         let (content, footnotes) = self.split_content_and_footnotes();
 
         let mut dest = String::with_capacity(content.len() * 2);
-        MarkdownFile::render_content_to_html(&mut dest, content.join("\n"));
+        let mut assets = Vec::new();
+        MarkdownFile::render_content_to_html(&mut dest, &mut assets, &config, content.join("\n"));
         MarkdownFile::render_footnotes_to_html(&mut dest, footnotes);
-        return dest;
+        return (dest, assets);
     }
 
     /// Returns the content
@@ -109,7 +116,12 @@ impl MarkdownFile {
     }
 
     /// Writes the page contents to HTML
-    fn render_content_to_html(mut dest: &mut String, content: String) {
+    fn render_content_to_html(
+        mut dest: &mut String,
+        assets: &mut Vec<Asset>,
+        config: &Config,
+        content: String,
+    ) {
         let mut footnote_no = 0;
         let parser = Parser::new_ext(&content, MarkdownFile::parser_options(true));
         let events = parser.map(|event| match event {
@@ -120,6 +132,23 @@ impl MarkdownFile {
                     name, name, footnote_no
                 );
                 Event::Html(formatted.into())
+            }
+            Event::Start(Tag::Heading(level)) => Event::Html(format!("<h{}>", level + 1).into()),
+            Event::End(Tag::Heading(level)) => Event::Html(format!("</h{}>", level + 1).into()),
+            Event::Start(Tag::Image(link_type, dest, title)) => {
+                if !dest.contains("://") {
+                    let source = PathBuf::from(dest.into_string());
+                    let relative_target_path =
+                        format!("static/{}", source.file_name().unwrap().to_str().unwrap());
+                    let absolute_url = format!("{}/{}", config.base_url, &relative_target_path);
+                    assets.push(Asset {
+                        source: source.into(),
+                        target: PathBuf::from(relative_target_path.clone()),
+                    });
+                    Event::Start(Tag::Image(link_type, absolute_url.into(), title))
+                } else {
+                    Event::Start(Tag::Image(link_type, dest, title))
+                }
             }
             _ => event,
         });
