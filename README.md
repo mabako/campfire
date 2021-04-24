@@ -35,4 +35,3 @@ cargo run -- example-vault
 
 - Error handling is very spotty
 - Far from idiomatic Rust code, it's more of a hands-on exercise to building your own static site generator for me
-- Not usable for your own site right now, unless you like zero formatting
