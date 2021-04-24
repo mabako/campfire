@@ -1,25 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{ title }}</title>
-</head>
-<body>
+{% extends "base.html" %}
+{% block content %}
 <header>
   <nav>
-    <h1><a href="{{ base_url }}">Example Vault</a></h1>
+    <h1><a href="/">Example Vault</a></h1>
   </nav>
-  <h1>{{ title }}</h1>
-  <p>{{ date | date(format="%B %d, %Y")}}</p>
 </header>
 <main>
   <article>
-    {{ markdown | safe }}
+    <h1>{{ post.title }}</h1>
+    <p>{{ post.date | date(format="%B %d, %Y")}}</p>
+    {{ post.markdown | safe }}
   </article>
 </main>
-<footer>
-  <p>&lt;3</p>
-</footer>
-</body>
-</html>
+{% endblock %}
