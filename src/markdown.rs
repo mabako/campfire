@@ -69,12 +69,15 @@ impl MarkdownFile {
             .unwrap()
             .parent()
             .unwrap();
+        // TODO there's better methods to do this, clearly
         relative_parent_path
             .join(self.title())
             .to_str()
             .unwrap()
             .to_lowercase()
             .replace(" ", "-")
+            .replace(":", "-")
+            .replace("--", "-")
     }
 
     pub fn render_to_html(&self, config: &Config) -> (String, Vec<Asset>) {
