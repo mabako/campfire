@@ -1,6 +1,7 @@
-use crate::config::Config;
+use crate::context::GeneratorContext;
 use chrono::{Date, Utc};
-use pulldown_cmark::{html, Event, Options, Parser, Tag};
+use log::warn;
+use pulldown_cmark::{html, CowStr, Event, LinkType, Options, Parser, Tag};
 use regex::Regex;
 use serde::Deserialize;
 use std::fs;
@@ -85,13 +86,13 @@ impl MarkdownFile {
         return slug::slugify(path.replace("'", ""));
     }
 
-    pub fn render_to_html(&self, config: &Config) -> (String, Vec<Asset>) {
+    pub fn render_to_html(&self, ctx: &GeneratorContext) -> (String, Vec<Asset>) {
         let (content, footnotes) = self.split_content_and_footnotes();
 
         let mut dest = String::with_capacity(content.len() * 2);
         let mut assets = Vec::new();
-        MarkdownFile::render_content_to_html(&mut dest, &mut assets, &config, content.join("\n"));
-        MarkdownFile::render_footnotes_to_html(&mut dest, footnotes);
+        MarkdownFile::render_content_to_html(&mut dest, &mut assets, &ctx, content.join("\n"));
+        MarkdownFile::render_footnotes_to_html(&mut dest, &ctx, footnotes);
         return (dest, assets);
     }
 
@@ -127,7 +128,7 @@ impl MarkdownFile {
     fn render_content_to_html(
         mut dest: &mut String,
         assets: &mut Vec<Asset>,
-        config: &Config,
+        ctx: &GeneratorContext,
         content: String,
     ) {
         let mut footnote_no = 0;
@@ -143,12 +144,16 @@ impl MarkdownFile {
             }
             Event::Start(Tag::Heading(level)) => Event::Html(format!("<h{}>", level + 1).into()),
             Event::End(Tag::Heading(level)) => Event::Html(format!("</h{}>", level + 1).into()),
+            Event::Start(Tag::Link(link_type, dest, title)) => {
+                rewrite_relative_url(&ctx, link_type, dest, title)
+            }
             Event::Start(Tag::Image(link_type, dest, title)) => {
                 if is_relative_url(dest.to_string()) {
                     let source = PathBuf::from(dest.into_string());
                     let relative_target_path =
                         format!("static/{}", source.file_name().unwrap().to_str().unwrap());
-                    let absolute_url = format!("{}/{}", config.base_url, &relative_target_path);
+                    let absolute_url =
+                        format!("{}/{}", &ctx.config.base_url, &relative_target_path);
                     assets.push(Asset {
                         source: source.into(),
                         target: PathBuf::from(relative_target_path.clone()),
@@ -164,7 +169,11 @@ impl MarkdownFile {
     }
 
     /// Writes the footnotes to HTML
-    fn render_footnotes_to_html(mut dest: &mut String, footnotes: Vec<String>) {
+    fn render_footnotes_to_html(
+        mut dest: &mut String,
+        ctx: &GeneratorContext,
+        footnotes: Vec<String>,
+    ) {
         let mut formatted_footnotes = String::new();
         if !footnotes.is_empty() {
             formatted_footnotes = format!(
@@ -183,6 +192,9 @@ impl MarkdownFile {
                 let cap = NORMAL_FOOTNOTE.captures(&footnotes[footnote_no]).unwrap();
                 footnote_no += 1;
                 Event::Html(format!("<li id=\"{}\">", &cap[1]).into())
+            }
+            Event::Start(Tag::Link(link_type, dest, title)) => {
+                rewrite_relative_url(&ctx, link_type, dest, title)
             }
             _ => event,
         });
@@ -215,6 +227,31 @@ impl MarkdownFile {
 
 fn is_relative_url(dest: String) -> bool {
     return !dest.contains("://");
+}
+
+fn rewrite_relative_url<'a>(
+    ctx: &'a GeneratorContext,
+    link_type: LinkType,
+    dest: CowStr<'a>,
+    title: CowStr<'a>,
+) -> Event<'a> {
+    let mut target = dest.clone();
+    if is_relative_url(dest.to_string()) {
+        // Obsidian-ish quirk: whitespace is replaced by %20
+        let replaced = dest.replace("%20", " ").to_string();
+
+        let post = &ctx
+            .posts
+            .iter()
+            .find(|(_, post)| replaced == post.original_file_name.replace("\\", "/"));
+        if let Some((_, post)) = post {
+            target = CowStr::from(format!("{}/{}", &ctx.config.base_url, &post.relative_url));
+        } else {
+            warn!("Unable to resolve relative link: {}", dest.to_string());
+        }
+    };
+
+    Event::Start(Tag::Link(link_type, target, title))
 }
 
 mod utc_date {

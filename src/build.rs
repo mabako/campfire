@@ -99,7 +99,7 @@ fn generate_post_and_copy_assets(
     let file_dir = ctx.output_dir.join(file.slug(&ctx.base_dir));
     let output_file = file_dir.join("index.html");
 
-    let (html, assets) = &file.render_to_html(&ctx.config);
+    let (html, assets) = &file.render_to_html(&ctx);
     let post_context = PostContext {
         markdown: html.into(),
         ..post_context.clone()
