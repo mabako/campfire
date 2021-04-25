@@ -144,7 +144,7 @@ impl MarkdownFile {
             Event::Start(Tag::Heading(level)) => Event::Html(format!("<h{}>", level + 1).into()),
             Event::End(Tag::Heading(level)) => Event::Html(format!("</h{}>", level + 1).into()),
             Event::Start(Tag::Image(link_type, dest, title)) => {
-                if !dest.contains("://") {
+                if is_relative_url(dest.to_string()) {
                     let source = PathBuf::from(dest.into_string());
                     let relative_target_path =
                         format!("static/{}", source.file_name().unwrap().to_str().unwrap());
@@ -211,6 +211,10 @@ impl MarkdownFile {
 
         return options;
     }
+}
+
+fn is_relative_url(dest: String) -> bool {
+    return !dest.contains("://");
 }
 
 mod utc_date {
