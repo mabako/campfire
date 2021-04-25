@@ -28,7 +28,8 @@ That said, 🏕 Campfire is reasonably tool-independent, although certain choice
 For the `example-vault` included, building should be as straightforward as:
 
 ```shell
-cargo run -- -b example-vault build
+cargo install campfire
+campfire -b example-vault build
 ```
 
 # Caveats
