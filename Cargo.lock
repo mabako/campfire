@@ -96,6 +96,7 @@ dependencies = [
  "regex",
  "serde",
  "serde_yaml",
+ "slug",
  "tera",
 ]
 

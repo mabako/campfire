@@ -63,21 +63,26 @@ impl MarkdownFile {
         }
     }
     pub fn slug(&self, base_directory: &Path) -> String {
-        let relative_parent_path = self
+        let mut path = self
             .path
             .strip_prefix(base_directory)
             .unwrap()
             .parent()
             .unwrap();
-        // TODO there's better methods to do this, clearly
-        relative_parent_path
-            .join(self.title())
-            .to_str()
-            .unwrap()
-            .to_lowercase()
-            .replace(" ", "-")
-            .replace(":", "-")
-            .replace("--", "-")
+        let mut path_parts = Vec::new();
+        while path.to_str().unwrap().ne("") {
+            path_parts.insert(
+                0,
+                MarkdownFile::slugify(path.file_name().unwrap().to_str().unwrap()),
+            );
+            path = path.parent().unwrap();
+        }
+        path_parts.push(MarkdownFile::slugify(&self.title()));
+        return path_parts.join("/");
+    }
+
+    fn slugify(path: &str) -> String {
+        return slug::slugify(path.replace("'", ""));
     }
 
     pub fn render_to_html(&self, config: &Config) -> (String, Vec<Asset>) {
