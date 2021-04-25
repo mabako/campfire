@@ -53,13 +53,13 @@ pub fn build(base_dir: PathBuf, config: Config) {
         let post_context = create_post_metadata(&ctx, &file);
         ctx.posts.push((file.into(), post_context));
     }
+    ctx.posts.sort_by(|(_, a), (_, b)| b.date.cmp(&a.date));
 
     // render individual posts
     let mut posts: Vec<PostContext> = Vec::new();
     for (file, post_context) in &ctx.posts {
         posts.push(generate_post_and_copy_assets(&ctx, post_context, file));
     }
-    posts.sort_by(|a, b| b.date.cmp(&a.date));
 
     // render index
     generate_index(&ctx);
