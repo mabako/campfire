@@ -2,7 +2,7 @@ use serde::Deserialize;
 use std::error::Error;
 use std::fs::File;
 use std::io::BufReader;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 #[derive(Debug, Deserialize)]
 pub struct Config {
@@ -27,8 +27,7 @@ fn default_target_path() -> PathBuf {
     PathBuf::from("out")
 }
 
-pub fn read_config(base_directory: &Path) -> Result<Config, Box<dyn Error>> {
-    let campfire_config = base_directory.join(".campfire").join("campfire.yaml");
-    let reader = BufReader::new(File::open(campfire_config)?);
+pub fn read_config(config_file: &PathBuf) -> Result<Config, Box<dyn Error>> {
+    let reader = BufReader::new(File::open(config_file)?);
     Ok(serde_yaml::from_reader(reader)?)
 }

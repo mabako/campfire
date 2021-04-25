@@ -1,3 +1,4 @@
+mod commandline;
 mod config;
 mod context;
 mod dir;
@@ -9,20 +10,46 @@ use crate::config::{read_config, Config};
 use crate::context::PostContext;
 use crate::markdown::MarkdownFile;
 use chrono::Datelike;
+use log::{debug, error, info};
+use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
-use std::{env, fs};
 use tera::{Context, Tera};
 
 fn main() {
-    if std::env::args().len() != 2 {
-        panic!("No base directory provided")
+    if let Err(_) = std::env::var("LOG") {
+        std::env::set_var("LOG", "info");
     }
-    let base_directory = &env::args().nth(1).unwrap();
-    let base_dir = Path::new(base_directory);
-    let config = read_config(base_dir).expect("Could not read config");
-    println!("{:?}", config);
+    pretty_env_logger::init_custom_env("LOG");
 
+    let matches = commandline::parse_command().get_matches();
+
+    let base_dir = PathBuf::from(matches.value_of("base-directory").unwrap());
+    if !base_dir.exists() {
+        panic!(
+            "Could not read base directory: {}",
+            base_dir.to_str().unwrap()
+        );
+    }
+
+    let config_path = matches.value_of("config").unwrap();
+    let config_file = base_dir.join(config_path);
+    let config = read_config(&config_file)
+        .unwrap_or_else(|_| panic!("Could not read config: {}", config_file.to_str().unwrap()));
+    info!(
+        "Generating site {} using config {}",
+        base_dir.to_str().unwrap(),
+        config_file.to_str().unwrap()
+    );
+
+    match matches.subcommand() {
+        ("build", _) => build(base_dir.into(), config.into()),
+        _ => panic!(),
+    }
+    info!("Done.");
+}
+
+fn build(base_dir: PathBuf, config: Config) {
     let template_path = base_dir
         .join(".campfire")
         .join(config.template_path.clone())
@@ -30,17 +57,17 @@ fn main() {
         .unwrap()
         .join("**")
         .join("*.html");
-    println!("Using templates from {:?}", template_path);
-    let tera = match Tera::new(template_path.to_str().unwrap()) {
+    let template_path = template_path.to_str().unwrap();
+    debug!("Using templates from {}", template_path);
+    let tera = match Tera::new(template_path) {
         Ok(t) => t,
         Err(e) => {
-            println!("Tera: Parsing error(s): {}", e);
+            error!("Tera: Parsing error(s): {}", e);
             ::std::process::exit(1);
         }
     };
 
     let files = dir::find_all_markdown_files(&base_dir, &config);
-    println!("Generating {} files", files.len());
 
     let campfire_dir = base_dir.join(".campfire");
     let output_dir = campfire_dir.join(config.target_path.clone());
@@ -73,8 +100,6 @@ fn main() {
     fs::write(output_dir.join("index.html"), rendered).expect("Failed to write output");
 
     run_post_build_command(config.post_build_command.into(), campfire_dir);
-
-    println!("Done.");
 }
 
 fn generate_post_and_copy_assets(
@@ -107,10 +132,7 @@ fn generate_post_and_copy_assets(
     context.insert("post", &post_context);
     context.insert("base_url", &config.base_url);
 
-    println!(
-        "Writing {:?} -- {:?} {:?}",
-        file_dir, file.path, file.frontmatter
-    );
+    info!("Generating {}", file_dir.to_str().unwrap());
 
     let rendered = tera.render("post.html", &context).unwrap();
     fs::create_dir_all(&file_dir).expect("Failed to create directory");
@@ -119,10 +141,7 @@ fn generate_post_and_copy_assets(
     for asset in assets {
         let asset_source_path = base_directory.join(&asset.source);
         let asset_target_path = output_dir.join(&asset.target);
-        println!(
-            "Copying asset {:?} from {:?}",
-            asset_target_path, asset_source_path
-        );
+        debug!("  Copying asset {}", asset_target_path.to_str().unwrap());
         fs::copy(asset_source_path, asset_target_path).unwrap();
     }
 
@@ -131,7 +150,7 @@ fn generate_post_and_copy_assets(
 
 fn run_post_build_command(post_build_command: String, campfire_dir: PathBuf) {
     if !post_build_command.is_empty() {
-        println!("Running post-build command: {}", post_build_command);
+        info!("Running post-build command: {}", post_build_command);
         if cfg!(target_os = "windows") {
             Command::new("cmd")
                 .args(&["/C", &post_build_command])
