@@ -14,9 +14,11 @@ use log::{debug, error, info};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
+use std::time::Instant;
 use tera::{Context, Tera};
 
 fn main() {
+    let start = Instant::now();
     if let Err(_) = std::env::var("LOG") {
         std::env::set_var("LOG", "info");
     }
@@ -46,7 +48,7 @@ fn main() {
         ("build", _) => build(base_dir.into(), config.into()),
         _ => panic!(),
     }
-    info!("Done.");
+    info!("Done in {:?}", start.elapsed());
 }
 
 fn build(base_dir: PathBuf, config: Config) {
