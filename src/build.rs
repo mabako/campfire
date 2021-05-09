@@ -8,7 +8,7 @@ use tera::{Context, Tera};
 
 use crate::markdown::MarkdownFile;
 use chrono::Datelike;
-use log::{debug, error, info};
+use log::{debug, error, info, warn};
 
 pub fn build(base_dir: PathBuf, config: Config) {
     let template_path = base_dir
@@ -65,6 +65,8 @@ pub fn build(base_dir: PathBuf, config: Config) {
 
     // render index & feed
     generate_index_and_feed(&ctx);
+
+    copy_static_files(&ctx);
 
     run_post_build_command(&ctx.config.post_build_command, campfire_dir);
 }
@@ -163,6 +165,46 @@ fn generate_index_and_feed(ctx: &GeneratorContext) {
         Err(_) => Tera::one_off(include_str!("templates/feed.xml"), &context, true).unwrap(),
     };
     fs::write(&ctx.output_dir.join(&ctx.config.feed_path), feed).expect("Failed to write feed");
+}
+
+fn copy_static_files(ctx: &GeneratorContext) {
+    let source = &ctx.base_dir.join(".campfire").join("static");
+    if source.exists() {
+        info!(
+            "Copying static files from {}",
+            source.as_path().to_str().unwrap()
+        );
+        copy_static_files_rec(source, &ctx.output_dir);
+    } else {
+        warn!("Not copying static files, directory doesn't exist");
+    }
+}
+
+fn copy_static_files_rec(source: &PathBuf, target: &PathBuf) {
+    if !target.exists() {
+        fs::create_dir(target).unwrap();
+    }
+
+    for file in source.read_dir().unwrap() {
+        if let Ok(entry) = file {
+            if let Ok(file_type) = entry.file_type() {
+                let source_file = source.join(entry.file_name());
+                let target_file = target.join(entry.file_name());
+                if file_type.is_dir() {
+                    copy_static_files_rec(&source_file, &target_file);
+                } else {
+                    debug!(
+                        "Copying {} to {}",
+                        &source_file.to_str().unwrap(),
+                        &target_file.to_str().unwrap()
+                    );
+                    fs::copy(source_file, target_file).unwrap();
+                }
+            } else {
+                panic!("Couldn't get file type for {:?}", entry.path())
+            }
+        }
+    }
 }
 
 fn run_post_build_command(post_build_command: &String, campfire_dir: PathBuf) {
