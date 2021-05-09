@@ -174,36 +174,10 @@ fn copy_static_files(ctx: &GeneratorContext) {
             "Copying static files from {}",
             source.as_path().to_str().unwrap()
         );
-        copy_static_files_rec(source, &ctx.output_dir);
+        let copied_files = dir::copy_recursively(source, &ctx.output_dir);
+        info!("Copied {} files", copied_files);
     } else {
         warn!("Not copying static files, directory doesn't exist");
-    }
-}
-
-fn copy_static_files_rec(source: &PathBuf, target: &PathBuf) {
-    if !target.exists() {
-        fs::create_dir(target).unwrap();
-    }
-
-    for file in source.read_dir().unwrap() {
-        if let Ok(entry) = file {
-            if let Ok(file_type) = entry.file_type() {
-                let source_file = source.join(entry.file_name());
-                let target_file = target.join(entry.file_name());
-                if file_type.is_dir() {
-                    copy_static_files_rec(&source_file, &target_file);
-                } else {
-                    debug!(
-                        "Copying {} to {}",
-                        &source_file.to_str().unwrap(),
-                        &target_file.to_str().unwrap()
-                    );
-                    fs::copy(source_file, target_file).unwrap();
-                }
-            } else {
-                panic!("Couldn't get file type for {:?}", entry.path())
-            }
-        }
     }
 }
 
