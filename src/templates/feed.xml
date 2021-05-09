@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title>{{ site_title }}</title>
+    <link href="{{ base_url | safe }}/feed.xml" rel="self"/>
+    <link href="{{ base_url | safe }}"/>
+    <id>{{ base_url | safe }}</id>
+    <updated>{{ posts[0].date | date(format="%+") }}</updated>
+
+    {%- for post in posts -%}
+    <entry>
+        <title>{{ post.title }}</title>
+        <link href="{{ base_url | safe }}/{{ post.relative_url | safe }}"/>
+        <id>{{ base_url | safe }}/{{ post.relative_url | safe }}</id>
+        <updated>{{ post.date | date(format="%+") }}</updated>
+        <content type="html">
+            {{ post.markdown }}
+        </content>
+    </entry>
+    {% endfor %}
+
+    <generator uri="https://github.com/mabako/campfire">Campfire</generator>
+</feed>

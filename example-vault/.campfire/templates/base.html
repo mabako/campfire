@@ -3,8 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Example Vault</title>
+  <title>{{ site_title }}</title>
   <link rel="stylesheet" href="https://unpkg.com/awsm.css/dist/awsm_theme_pearl-lusta.min.css">
+  <link href="{{ base_url | safe }}/feed.xml" type="application/atom+xml" rel="alternate" title="Feed" />
 </head>
 <body>
 {% block content %}

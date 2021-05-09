@@ -56,13 +56,15 @@ pub fn build(base_dir: PathBuf, config: Config) {
     ctx.posts.sort_by(|(_, a), (_, b)| b.date.cmp(&a.date));
 
     // render individual posts
-    let mut posts: Vec<PostContext> = Vec::new();
+    let mut posts: Vec<(MarkdownFile, PostContext)> = Vec::new();
     for (file, post_context) in &ctx.posts {
-        posts.push(generate_post_and_copy_assets(&ctx, post_context, file));
+        let post_context = generate_post_and_copy_assets(&ctx, post_context, &file);
+        posts.push((file.clone(), post_context));
     }
+    ctx.posts = posts;
 
-    // render index
-    generate_index(&ctx);
+    // render index & feed
+    generate_index_and_feed(&ctx);
 
     run_post_build_command(&ctx.config.post_build_command, campfire_dir);
 }
@@ -108,6 +110,7 @@ fn generate_post_and_copy_assets(
     let mut context = Context::new();
     context.insert("post", &post_context);
     context.insert("base_url", &ctx.config.base_url);
+    context.insert("site_title", &ctx.config.title());
 
     info!("Generating {}", file_dir.to_str().unwrap());
 
@@ -125,7 +128,7 @@ fn generate_post_and_copy_assets(
     return post_context;
 }
 
-fn generate_index(ctx: &GeneratorContext) {
+fn generate_index_and_feed(ctx: &GeneratorContext) {
     let posts: Vec<&PostContext> = ctx
         .posts
         .iter()
@@ -135,9 +138,17 @@ fn generate_index(ctx: &GeneratorContext) {
     context.insert("posts", &posts);
     // TODO pass a global context around and extend sub-contexts from it
     context.insert("base_url", &ctx.config.base_url);
+    context.insert("site_title", &ctx.config.title());
 
-    let rendered = ctx.tera.render("index.html", &context).unwrap();
-    fs::write(&ctx.output_dir.join("index.html"), rendered).expect("Failed to write output");
+    let index = ctx.tera.render("index.html", &context).unwrap();
+    fs::write(&ctx.output_dir.join("index.html"), index).expect("Failed to write index");
+
+    let feed = ctx.tera.render("feed.xml", &context);
+    let feed = match feed {
+        Ok(feed) => feed,
+        Err(_) => Tera::one_off(include_str!("templates/feed.xml"), &context, true).unwrap(),
+    };
+    fs::write(&ctx.output_dir.join(&ctx.config.feed_path), feed).expect("Failed to write feed");
 }
 
 fn run_post_build_command(post_build_command: &String, campfire_dir: PathBuf) {

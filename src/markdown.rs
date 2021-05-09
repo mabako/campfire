@@ -29,7 +29,7 @@ pub fn read_markdown_file(path: PathBuf) -> Option<MarkdownFile> {
     });
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct Frontmatter {
     pub title: Option<String>,
 
@@ -38,7 +38,7 @@ pub struct Frontmatter {
     pub tags: Vec<String>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct MarkdownFile {
     pub path: PathBuf,
     pub frontmatter: Frontmatter,
