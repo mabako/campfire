@@ -11,16 +11,14 @@ pub struct Config {
     title: String,
     #[serde(rename = "require-tag")]
     pub require_tag: String,
-    #[serde(rename = "template-path", default = "default_template_path")]
-    pub template_path: PathBuf,
-    #[serde(rename = "target-path", default = "default_target_path")]
-    pub target_path: PathBuf,
     #[serde(rename = "base-url", default)]
     pub base_url: String,
     #[serde(rename = "post-build", default)]
     pub post_build_command: String,
     #[serde(rename = "feed-path", default = "default_feed_path")]
     pub feed_path: PathBuf,
+    #[serde(default)]
+    pub paths: Paths,
 }
 
 impl Config {
@@ -29,6 +27,23 @@ impl Config {
             self.title.clone()
         } else {
             self.name.clone()
+        }
+    }
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Paths{
+    #[serde(default = "default_target_path")]
+    pub target: PathBuf,
+    #[serde(default = "default_template_path")]
+    pub templates: PathBuf,
+}
+
+impl Default for Paths {
+    fn default() -> Self {
+        Paths {
+            target: default_target_path(),
+            templates: default_template_path(),
         }
     }
 }

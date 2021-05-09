@@ -1,6 +1,7 @@
 name: my-blog
 title: Example Vault
 require-tag: published
-target-path: ./out
-template-path: ./templates
+paths:
+  target: ./out
+  templates: ./templates
 base-url: http://localhost

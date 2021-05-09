@@ -13,7 +13,7 @@ use log::{debug, error, info};
 pub fn build(base_dir: PathBuf, config: Config) {
     let template_path = base_dir
         .join(".campfire")
-        .join(config.template_path.clone())
+        .join(config.paths.templates.clone())
         .canonicalize()
         .unwrap()
         .join("**")
@@ -32,7 +32,7 @@ pub fn build(base_dir: PathBuf, config: Config) {
 
     // Clean up output directory
     let campfire_dir = base_dir.join(".campfire");
-    let output_dir = campfire_dir.join(config.target_path.clone());
+    let output_dir = campfire_dir.join(config.paths.target.clone());
     if output_dir.exists() {
         fs::remove_dir_all(&output_dir).unwrap();
     }
