@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
+    <generator uri="https://github.com/mabako/campfire">Campfire</generator>
     <title>{{ site_title }}</title>
     <link href="{{ base_url | safe }}/feed.xml" rel="self"/>
-    <link href="{{ base_url | safe }}"/>
-    <id>{{ base_url | safe }}</id>
+    <link href="{{ base_url | safe }}/"/>
+    <id>{{ base_url | safe }}/</id>
     <updated>{{ posts[0].date | date(format="%+") }}</updated>
 
     {%- for post in posts -%}
@@ -23,6 +24,4 @@
         {%- endfor %}
     </entry>
     {% endfor %}
-
-    <generator uri="https://github.com/mabako/campfire">Campfire</generator>
 </feed>
