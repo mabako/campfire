@@ -1,6 +1,6 @@
 # 🏕️ Campfire
 
-A tiny static site generator, greatly inspired by Zola.
+A tiny static site generator, greatly inspired by [Zola](https://www.getzola.org/).
 
 ## Why?
 
