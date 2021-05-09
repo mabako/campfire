@@ -7,6 +7,7 @@ use tera::Tera;
 #[derive(Serialize, Clone)]
 pub struct PostContext {
     pub title: String,
+    pub tags: Vec<String>,
     pub original_file_name: String,
     pub relative_url: String,
 

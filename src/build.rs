@@ -70,8 +70,13 @@ pub fn build(base_dir: PathBuf, config: Config) {
 }
 
 fn create_post_metadata(ctx: &GeneratorContext, file: &MarkdownFile) -> PostContext {
+    let tags: Vec<String> = file.frontmatter.tags.iter()
+        .map(|t| t.clone())
+        .filter(|t| t.as_str() != &ctx.config.require_tag)
+        .collect();
     return PostContext {
         title: file.title(),
+        tags,
         date: file
             .frontmatter
             .date
