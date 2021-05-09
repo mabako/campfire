@@ -34,7 +34,7 @@ impl Config {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct Paths{
+pub struct Paths {
     #[serde(default = "default_target_path")]
     pub target: PathBuf,
     #[serde(default = "default_template_path")]

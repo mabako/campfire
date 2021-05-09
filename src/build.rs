@@ -70,14 +70,18 @@ pub fn build(base_dir: PathBuf, config: Config) {
 }
 
 fn create_post_metadata(ctx: &GeneratorContext, file: &MarkdownFile) -> PostContext {
-    let tags: Vec<String> = file.frontmatter.tags.iter()
+    let tags: Vec<String> = file
+        .frontmatter
+        .tags
+        .iter()
         .map(|t| t.clone())
         .filter(|t| t.as_str() != &ctx.config.require_tag)
         .collect();
     let author = match &file.frontmatter.author {
         Some(author) => author,
         None => &ctx.config.author,
-    }.clone();
+    }
+    .clone();
     return PostContext {
         title: file.title(),
         tags,
