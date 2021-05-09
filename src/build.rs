@@ -68,7 +68,7 @@ pub fn build(base_dir: PathBuf, config: Config) {
 
     copy_static_files(&ctx);
 
-    run_post_build_command(&ctx.config.post_build_command, campfire_dir);
+    run_post_build_command(&ctx, campfire_dir);
 }
 
 fn create_post_metadata(ctx: &GeneratorContext, file: &MarkdownFile) -> PostContext {
@@ -207,7 +207,11 @@ fn copy_static_files_rec(source: &PathBuf, target: &PathBuf) {
     }
 }
 
-fn run_post_build_command(post_build_command: &String, campfire_dir: PathBuf) {
+fn run_post_build_command(ctx: &GeneratorContext, campfire_dir: PathBuf) {
+    let post_build_command = &ctx
+        .config
+        .post_build_command
+        .replace("{{target}}", &ctx.output_dir.to_str().unwrap());
     if !post_build_command.is_empty() {
         info!("Running post-build command: {}", post_build_command);
         if cfg!(target_os = "windows") {
