@@ -12,6 +12,9 @@
         <link href="{{ base_url | safe }}/{{ post.relative_url | safe }}"/>
         <id>{{ base_url | safe }}/{{ post.relative_url | safe }}</id>
         <updated>{{ post.date | date(format="%+") }}</updated>
+        <author>
+            <name>{{ post.author }}</name>
+        </author>
         <content type="html">
             {{ post.markdown }}
         </content>

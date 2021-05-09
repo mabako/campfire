@@ -74,9 +74,14 @@ fn create_post_metadata(ctx: &GeneratorContext, file: &MarkdownFile) -> PostCont
         .map(|t| t.clone())
         .filter(|t| t.as_str() != &ctx.config.require_tag)
         .collect();
+    let author = match &file.frontmatter.author {
+        Some(author) => author,
+        None => &ctx.config.author,
+    }.clone();
     return PostContext {
         title: file.title(),
         tags,
+        author,
         date: file
             .frontmatter
             .date

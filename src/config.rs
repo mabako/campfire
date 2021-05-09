@@ -9,6 +9,8 @@ pub struct Config {
     pub name: String,
     #[serde(default)]
     title: String,
+    #[serde(default)]
+    pub author: String,
     #[serde(rename = "require-tag")]
     pub require_tag: String,
     #[serde(rename = "base-url", default)]

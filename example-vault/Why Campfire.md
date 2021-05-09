@@ -4,6 +4,7 @@ tags:
 - published
 - a
 - b
+author: This Guy
 ---
 
 Inspired by Tom Critchlow's article on [Building a Digital Garden](https://tomcritchlow.com/2019/02/17/building-digital-garden/), there's three distinct concepts of information flows:

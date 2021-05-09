@@ -36,6 +36,7 @@ pub struct Frontmatter {
     #[serde(with = "utc_date", default)]
     pub date: Option<Date<Utc>>,
     pub tags: Vec<String>,
+    pub author: Option<String>
 }
 
 #[derive(Debug, Clone)]

@@ -8,6 +8,7 @@ use tera::Tera;
 pub struct PostContext {
     pub title: String,
     pub tags: Vec<String>,
+    pub author: String,
     pub original_file_name: String,
     pub relative_url: String,
 

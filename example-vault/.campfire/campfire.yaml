@@ -1,5 +1,6 @@
 name: my-blog
 title: Example Vault
+author: Some Person
 require-tag: published
 paths:
   target: ./out
