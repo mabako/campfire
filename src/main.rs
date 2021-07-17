@@ -2,6 +2,7 @@ mod build;
 mod commandline;
 mod config;
 mod context;
+mod deserialize;
 mod dir;
 mod markdown;
 

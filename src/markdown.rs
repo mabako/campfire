@@ -1,4 +1,5 @@
 use crate::context::GeneratorContext;
+use crate::deserialize::{deserialize_tags, utc_date};
 use chrono::{Date, Utc};
 use log::warn;
 use pulldown_cmark::{html, CowStr, Event, LinkType, Options, Parser, Tag};
@@ -35,6 +36,7 @@ pub struct Frontmatter {
 
     #[serde(with = "utc_date", default)]
     pub date: Option<Date<Utc>>,
+    #[serde(deserialize_with = "deserialize_tags")]
     pub tags: Vec<String>,
     pub author: Option<String>,
 }
@@ -253,21 +255,4 @@ fn rewrite_relative_url<'a>(
     };
 
     Event::Start(Tag::Link(link_type, target, title))
-}
-
-mod utc_date {
-    use chrono::{Date, NaiveDate, Utc};
-    use serde::{Deserialize, Deserializer};
-
-    pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<Date<Utc>>, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let s = String::deserialize(deserializer)?;
-        let parsed = s.parse::<NaiveDate>().map(|s| Date::from_utc(s, Utc));
-        match parsed {
-            Ok(p) => Ok(Some(p)),
-            Err(_) => Ok(None),
-        }
-    }
 }

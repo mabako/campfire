@@ -1,8 +1,8 @@
 use crate::config::Config;
 use crate::markdown::{read_markdown_file, MarkdownFile};
+use log::debug;
 use std::fs;
 use std::path::{Path, PathBuf};
-use log::{debug};
 
 pub fn find_all_markdown_files(base_directory: &Path, config: &Config) -> Vec<MarkdownFile> {
     let mut markdown_files = Vec::new();
