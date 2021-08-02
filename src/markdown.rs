@@ -7,6 +7,7 @@ use regex::Regex;
 use serde::Deserialize;
 use std::fs;
 use std::path::{Path, PathBuf};
+use log::info;
 
 lazy_static! {
     // https://github.com/getzola/zola/blob/1ef8c85f53b4988fdafc0e6271cce590515d55aa/components/front_matter/src/lib.rs#L17
@@ -18,16 +19,24 @@ lazy_static! {
 }
 
 pub fn read_markdown_file(path: PathBuf) -> Option<MarkdownFile> {
-    let content = fs::read_to_string(&path).unwrap();
-    let cap = YAML_RE.captures(&content)?;
+    let content = fs::read_to_string(&path);
+    match content {
+        Ok(content) => {
+            let cap = YAML_RE.captures(&content)?;
 
-    let frontmatter: &str = cap.get(1).map_or("", |m| m.as_str());
-    let markdown = cap.get(2).map_or("", |m| m.as_str());
-    return Some(MarkdownFile {
-        path: path.into(),
-        frontmatter: serde_yaml::from_str(frontmatter.into()).unwrap(),
-        markdown: markdown.into(),
-    });
+            let frontmatter: &str = cap.get(1).map_or("", |m| m.as_str());
+            let markdown = cap.get(2).map_or("", |m| m.as_str());
+            return Some(MarkdownFile {
+                path: path.into(),
+                frontmatter: serde_yaml::from_str(frontmatter.into()).unwrap(),
+                markdown: markdown.into(),
+            });
+        }
+        Err(_) => {
+            info!("Skipping {} (not a text file)", path.to_str().unwrap());
+            None
+        }
+    }
 }
 
 #[derive(Debug, Deserialize, Clone)]
