@@ -1,13 +1,14 @@
 use crate::context::GeneratorContext;
 use crate::deserialize::{deserialize_tags, utc_date};
 use chrono::{Date, Utc};
+use log::info;
 use log::warn;
-use pulldown_cmark::{html, CowStr, Event, LinkType, Options, Parser, Tag};
+use pulldown_cmark::{html, CowStr, Event, HeadingLevel, LinkType, Options, Parser, Tag};
 use regex::Regex;
 use serde::Deserialize;
+use std::fmt::Debug;
 use std::fs;
 use std::path::{Path, PathBuf};
-use log::info;
 
 lazy_static! {
     // https://github.com/getzola/zola/blob/1ef8c85f53b4988fdafc0e6271cce590515d55aa/components/front_matter/src/lib.rs#L17
@@ -154,8 +155,12 @@ impl MarkdownFile {
                 );
                 Event::Html(formatted.into())
             }
-            Event::Start(Tag::Heading(level)) => Event::Html(format!("<h{}>", level + 1).into()),
-            Event::End(Tag::Heading(level)) => Event::Html(format!("</h{}>", level + 1).into()),
+            Event::Start(Tag::Heading(level, _fragment, _classes)) => {
+                Event::Html(format!("<{}>", MarkdownFile::increase_heading_level(level)).into())
+            }
+            Event::End(Tag::Heading(level, _fragment, _classes)) => {
+                Event::Html(format!("</{}>", MarkdownFile::increase_heading_level(level)).into())
+            }
             Event::Start(Tag::Link(link_type, dest, title)) => {
                 rewrite_relative_url(&ctx, link_type, dest, title)
             }
@@ -178,6 +183,17 @@ impl MarkdownFile {
             _ => event,
         });
         html::push_html(&mut dest, events);
+    }
+
+    fn increase_heading_level(level: HeadingLevel) -> HeadingLevel {
+        return match level {
+            HeadingLevel::H1 => HeadingLevel::H2,
+            HeadingLevel::H2 => HeadingLevel::H3,
+            HeadingLevel::H3 => HeadingLevel::H4,
+            HeadingLevel::H4 => HeadingLevel::H5,
+            HeadingLevel::H5 => HeadingLevel::H6,
+            other => panic!("Could not increase heading from level {}", other),
+        };
     }
 
     /// Writes the footnotes to HTML

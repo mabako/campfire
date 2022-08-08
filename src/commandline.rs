@@ -1,14 +1,11 @@
-use clap::{crate_authors, crate_description, crate_version, App, AppSettings, Arg, SubCommand};
+use clap::{command, AppSettings, Arg, Command, SubCommand};
 
-pub fn parse_command() -> App<'static, 'static> {
-    return App::new("campfire")
-        .version(crate_version!())
-        .author(crate_authors!())
-        .about(crate_description!())
+pub fn parse_command() -> Command<'static> {
+    return command!()
         .setting(AppSettings::SubcommandRequiredElseHelp)
         .arg(
             Arg::with_name("base-directory")
-                .short("b")
+                .short('b')
                 .long("base-directory")
                 .help("Directory to build site from")
                 .takes_value(true)
@@ -16,7 +13,7 @@ pub fn parse_command() -> App<'static, 'static> {
         )
         .arg(
             Arg::with_name("config")
-                .short("c")
+                .short('c')
                 .long("config")
                 .help("Configuration file")
                 .takes_value(true)

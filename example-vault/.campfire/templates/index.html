@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% block content %}
 <header>
-  <h1>{{ site_title }}}</h1>
+  <h1>{{ site_title }}</h1>
 </header>
 <main>
   <ul>
   {% for post in posts %}
-    <li><a href="/{{ post.relative_url }}">{{ post.title}}</a></li>
+    <li><a href="/{{ post.relative_url }}">{{ post.title }}</a></li>
   {% endfor %}
   </ul>
 </main>

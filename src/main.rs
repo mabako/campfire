@@ -42,7 +42,7 @@ fn main() {
     );
 
     match matches.subcommand() {
-        ("build", _) => build(base_dir.into(), config.into()),
+        Some(("build", _)) => build(base_dir.into(), config.into()),
         _ => panic!(),
     }
     info!("Done in {:?}", start.elapsed());
